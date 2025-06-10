@@ -1,9 +1,14 @@
 pipeline {
     agent any
     stages {
+        stage('Build') {
+            steps {
+                sh 'javac -cp ".:libs/*" src/tests/LoginTest.java'
+            }
+        }
         stage('Test') {
             steps {
-                echo 'Testing...'
+                sh 'java -cp ".:libs/*:src" tests.LoginTest'
             }
         }
     }
