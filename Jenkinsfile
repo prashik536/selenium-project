@@ -2,28 +2,51 @@ pipeline {
     agent any
 
     environment {
-        CHROME_DRIVER_PATH = "/usr/local/bin/chromedriver"
+        // You can customize these if needed
+        MAVEN_OPTS = "-Dmaven.test.failure.ignore=false"
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Build') {
             steps {
-                echo 'Building the project...'
                 sh 'mvn clean compile'
             }
         }
 
-        stage('Test') {
+        stage('Run Tests') {
             steps {
-                echo 'Running tests...'
                 sh 'mvn test'
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn package'
             }
         }
     }
 
     post {
         always {
-            junit '**/target/surefire-reports/*.xml'
+            echo 'Publishing test results and archiving artifacts...'
+            junit 'target/surefire-reports/*.xml'
+
+            archiveArtifacts artifacts: 'target/**/*.jar', fingerprint: true
+            archiveArtifacts artifacts: 'target/surefire-reports/**/*.*', allowEmptyArchive: true
+        }
+
+        failure {
+            echo 'Build failed. Check test reports or logs for details.'
+        }
+
+        success {
+            echo 'Build completed successfully.'
         }
     }
 }
