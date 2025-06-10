@@ -1,15 +1,29 @@
 pipeline {
     agent any
+
+    environment {
+        CHROME_DRIVER_PATH = "/usr/local/bin/chromedriver"
+    }
+
     stages {
         stage('Build') {
             steps {
-                sh 'javac -cp ".:libs/*" src/tests/LoginTest.java'
+                echo 'Building the project...'
+                sh 'mvn clean compile'
             }
         }
+
         stage('Test') {
             steps {
-                sh 'java -cp ".:libs/*:src" tests.LoginTest'
+                echo 'Running tests...'
+                sh 'mvn test'
             }
+        }
+    }
+
+    post {
+        always {
+            junit '**/target/surefire-reports/*.xml'
         }
     }
 }
